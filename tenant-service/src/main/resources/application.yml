@@ -1,0 +1,29 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: tenant-service
+  datasource:
+    url: jdbc:postgresql://localhost:5433/tenantdb
+    username: pgrent
+    password: pgrent
+  jpa:
+    hibernate:
+      ddl-auto: update   # creates/updates tables automatically (fine for learning)
+    open-in-view: false
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      properties:
+        max.block.ms: 5000   # give up quickly if Kafka is down
+
+app:
+  jwt:
+    # MUST be identical in all three services (at least 32 characters)
+    secret: change-this-secret-to-something-long-and-random-32chars
+    expiry-minutes: 480
+  # Needed to create the first OWNER account via the UI
+  owner-signup-code: PG-OWNER-2026

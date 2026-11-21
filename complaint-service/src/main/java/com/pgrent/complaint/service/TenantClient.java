@@ -1,0 +1,46 @@
+package com.pgrent.complaint.service;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+
+/**
+ * SYNCHRONOUS communication: complaint-service asks tenant-service "who is this tenant and which
+ * room are they in?" so the tenant can never claim a room that is not theirs.
+ */
+@Component
+public class TenantClient {
+
+    public record TenantDto(Long id, String name, String phone, Long roomId, String roomNumber,
+                            BigDecimal monthlyRent, LocalDate moveInDate, LocalDate moveOutDate,
+                            String status) {
+    }
+
+    private final RestClient client;
+
+    public TenantClient(RestClient.Builder builder, @Value("${app.tenant-service-url}") String baseUrl) {
+        this.client = builder.baseUrl(baseUrl).build();
+    }
+
+    public TenantDto getTenant(Long id, String token) {
+        try {
+            return client.get()
+                    .uri("/api/tenants/{id}", id)
+                    .header("Authorization", "Bearer " + token)
+                    .retrieve()
+                    .onStatus(status -> status.value() == 404, (req, res) -> {
+                        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Tenant " + id + " not found");
+                    })
+                    .body(TenantDto.class);
+        } catch (RestClientException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY,
+                    "tenant-service is not reachable: " + e.getMessage());
+        }
+    }
+}

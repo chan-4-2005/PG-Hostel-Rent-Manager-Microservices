@@ -1,0 +1,23 @@
+server:
+  port: 8083
+
+spring:
+  application:
+    name: complaint-service
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/complaintdb
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: complaint-service
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+
+app:
+  jwt:
+    # MUST be identical in all three services
+    secret: change-this-secret-to-something-long-and-random-32chars
+    expiry-minutes: 480
+  tenant-service-url: http://localhost:8081

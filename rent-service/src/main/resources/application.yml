@@ -1,0 +1,30 @@
+server:
+  port: 8082
+
+spring:
+  application:
+    name: rent-service
+  datasource:
+    url: jdbc:mysql://localhost:3307/rentdb?useSSL=false&allowPublicKeyRetrieval=true
+    username: pgrent
+    password: pgrent
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: rent-service
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+
+app:
+  jwt:
+    # MUST be identical in all three services
+    secret: change-this-secret-to-something-long-and-random-32chars
+    expiry-minutes: 480
+  tenant-service-url: http://localhost:8081
+  rent:
+    due-day: 5   # rent for a month is due on this day of that month
