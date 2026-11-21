@@ -118,9 +118,9 @@ function renderLogin() {
         '<div class="login-box">' +
 
         '<div class="login-logo">' +
-        '<div class="icon-circle">🏠</div>' +
-        '<h2>PG &amp; Hostel Rent Manager</h2>' +
-        '<p>Sign in to manage your property</p>' +
+        '<div class="icon-circle" aria-hidden="true">N</div>' +
+        '<h2>Nestwell</h2>' +
+        '<p>Your property, beautifully in sync</p>' +
         '</div>' +
 
         '<form id="login-form">' +
@@ -179,12 +179,12 @@ function renderLogin() {
 ══════════════════════════════════════════════════════════════════════════════ */
 
 const NAV_ICONS = {
-    rooms:      '🏘️',
-    tenants:    '👥',
-    rent:       '💰',
-    complaints: '📋',
-    myrent:     '💳',
-    mycomplaints:'📝'
+    rooms:      '⌂',
+    tenants:    '♙',
+    rent:       '₹',
+    complaints: '✳',
+    myrent:     '₹',
+    mycomplaints:'✳'
 };
 
 function renderShell(tabs) {
@@ -193,9 +193,10 @@ function renderShell(tabs) {
     // Build nav items
     const navItems = keys.map(function (k) {
         const icon = NAV_ICONS[k] || '📄';
-        return '<button class="nav-item" data-tab="' + esc(k) + '">' +
-               '<span class="nav-icon">' + icon + '</span>' +
+        return '<button class="nav-item" data-tab="' + esc(k) + '" aria-label="' + esc(tabs[k].label) + '" aria-current="false">' +
+               '<span class="nav-icon" aria-hidden="true">' + icon + '</span>' +
                '<span>' + esc(tabs[k].label) + '</span>' +
+               '<span class="nav-arrow" aria-hidden="true">↗</span>' +
                '</button>';
     }).join('');
 
@@ -208,31 +209,34 @@ function renderShell(tabs) {
         // ── Sidebar ──────────────────────────────────────────────────────────
         '<aside class="sidebar" id="sidebar">' +
         '<div class="sidebar-logo">' +
-        '<div class="logo-icon">🏠</div>' +
-        '<h1>PG Rent Manager</h1>' +
-        '<p>' + esc(session.role === 'OWNER' ? 'Owner Dashboard' : 'Tenant Portal') + '</p>' +
+        '<div class="logo-lockup"><div class="logo-icon" aria-hidden="true">N</div>' +
+        '<div><h1>Nestwell</h1><p>PROPERTY MANAGEMENT</p></div></div>' +
+        '<div class="workspace-label"><span class="workspace-dot"></span>' + esc(session.role === 'OWNER' ? 'Owner workspace' : 'Resident portal') + '</div>' +
         '</div>' +
-        '<nav class="sidebar-nav" id="sidebar-nav">' + navItems + '</nav>' +
+        '<nav class="sidebar-nav" id="sidebar-nav" aria-label="Main navigation">' +
+        '<div class="nav-caption">WORKSPACE</div>' + navItems + '</nav>' +
         '<div class="sidebar-footer">' +
         '<div class="user-info">' +
         '<div class="user-avatar">' + initials + '</div>' +
-        '<div><div class="user-name">' + esc(session.username) + '</div>' +
+        '<div class="user-copy"><div class="user-name">' + esc(session.username) + '</div>' +
         '<div class="user-role">' + esc(roleLower) + '</div></div>' +
-        '</div>' +
-        '<button class="btn-logout" id="logout-btn">⬅ Sign out</button>' +
+        '<button class="btn-logout" id="logout-btn" aria-label="Sign out" title="Sign out">↗</button>' +
         '</div>' +
         '</aside>' +
 
         // ── Main ─────────────────────────────────────────────────────────────
         '<div class="main">' +
         '<header class="topbar">' +
-        '<div>' +
-        '<button class="hamburger" id="hamburger" aria-label="Toggle menu">' +
+        '<div class="topbar-leading">' +
+        '<button class="hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false">' +
         '<span></span><span></span><span></span>' +
         '</button>' +
-        '</div>' +
+        '<div class="topbar-eyebrow">PROPERTY OVERVIEW</div>' +
         '<div id="topbar-title"><div class="topbar-title">' + esc(tabs[keys[0]].label) + '</div></div>' +
-        '<div></div>' + // spacer
+        '</div>' +
+        '<div class="topbar-meta"><span class="live-indicator"><span></span> All systems normal</span>' +
+        '<div class="topbar-divider"></div><div class="topbar-profile"><div class="topbar-avatar">' + initials + '</div>' +
+        '<div><strong>' + esc(session.username) + '</strong><span>' + esc(roleLower) + '</span></div></div></div>' +
         '</header>' +
         '<div class="page-content" id="tab"></div>' +
         '</div>' +
@@ -240,8 +244,9 @@ function renderShell(tabs) {
         '</div>'; // .shell
 
     // hamburger toggle for mobile
-    document.getElementById('hamburger').addEventListener('click', function () {
-        document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('hamburger').addEventListener('click', function (event) {
+        const isOpen = document.getElementById('sidebar').classList.toggle('open');
+        event.currentTarget.setAttribute('aria-expanded', String(isOpen));
     });
 
     document.getElementById('logout-btn').addEventListener('click', logout);
@@ -249,7 +254,9 @@ function renderShell(tabs) {
     async function openTab(key) {
         // Update nav active state
         document.querySelectorAll('.nav-item').forEach(function (b) {
-            b.className = 'nav-item' + (b.getAttribute('data-tab') === key ? ' active' : '');
+            const isActive = b.getAttribute('data-tab') === key;
+            b.className = 'nav-item' + (isActive ? ' active' : '');
+            b.setAttribute('aria-current', isActive ? 'page' : 'false');
         });
         // Update topbar title
         document.getElementById('topbar-title').innerHTML =
@@ -808,7 +815,7 @@ async function tenantComplaints(el) {
         '</select></div>' +
         '</div>' +
         '<div class="form-group" style="margin-top:10px"><label class="form-label">Describe the problem</label>' +
-        '<textarea class="form-control" name="description" maxlength="1000" required placeholder="Describe what's wrong in detail…"></textarea></div>' +
+        '<textarea class="form-control" name="description" maxlength="1000" required placeholder="Describe what&apos;s wrong in detail…"></textarea></div>' +
         '<div class="form-group"><label class="form-label">Photo links <span class="muted">(optional — one URL per line, start with https://)</span></label>' +
         '<textarea class="form-control" name="photos" placeholder="https://…"></textarea></div>' +
         '<button class="btn btn-primary" type="submit" style="margin-top:4px">📤 Submit complaint</button>' +
